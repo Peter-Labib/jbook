@@ -1,24 +1,50 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState, useRef } from "react";
+import * as esbuild from "esbuild-wasm";
 
+import { unpkgPathPlugin } from "./plugins/unpkg-path-plugin";
+
+let renderd = false;
 function App() {
+  const inputRef = useRef<any>("");
+  const [code, setCode] = useState<string>("");
+
+  const startService = async () => {
+    try {
+      await esbuild.initialize({
+        worker: true,
+        wasmURL: "/esbuild.wasm",
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const onClick = async () => {
+    if (!inputRef.current) {
+      return;
+    }
+
+    esbuild.build({
+      entryPoints: ["index.js"],
+      bundle: true,
+      plugins: [unpkgPathPlugin()],
+    });
+  };
+
+  useEffect(() => {
+    if (!renderd) startService();
+    return () => {
+      renderd = true;
+    };
+  }, []);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <textarea ref={inputRef}></textarea>
+      <div>
+        <button onClick={onClick}>Sudbmit</button>
+      </div>
+      <pre>{code}</pre>
     </div>
   );
 }
