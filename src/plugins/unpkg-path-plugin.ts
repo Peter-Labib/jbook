@@ -1,18 +1,37 @@
-import * as esbuild from 'esbuild-wasm';
-import axios from 'axios';
+import * as esbuild from "esbuild-wasm";
+import axios from "axios";
+
+interface OnResolveArgs {
+  importer: string;
+  kind: string;
+  namespace: string | undefined;
+  path: string;
+  resolveDir: string;
+  pluginData?: undefined;
+}
 
 export const unpkgPathPlugin = () => {
   return {
-    name: 'unpkg-path-plugin',
+    name: "unpkg-path-plugin",
     setup(build: esbuild.PluginBuild) {
-      build.onResolve({ filter: /.*/ }, async (args: any) => {
-        console.log('onResolve', args);
-        if (args.path === 'index.js') {
-          return { path: args.path, namespace: 'a' };
+      build.onResolve({ filter: /.*/ }, async (args: OnResolveArgs) => {
+        console.log("onResolve", args);
+        if (args.path === "index.js") {
+          return { path: args.path, namespace: "a" };
+        }
+
+        if (args.path.includes("./") || args.path.includes("../")) {
+          return {
+            namespace: "a",
+            path: new URL(
+              args.path,
+              "https://unpkg.com" + args.resolveDir + "/"
+            ).href,
+          };
         }
 
         return {
-          namespace: 'a',
+          namespace: "a",
           path: `https://unpkg.com/${args.path}`,
         };
 
@@ -25,22 +44,24 @@ export const unpkgPathPlugin = () => {
       });
 
       build.onLoad({ filter: /.*/ }, async (args: any) => {
-        console.log('onLoad', args);
+        console.log("onLoad", args);
 
-        if (args.path === 'index.js') {
+        if (args.path === "index.js") {
           return {
-            loader: 'jsx',
+            loader: "jsx",
             contents: `
-              const message = require('medium-test-pkg');
-              console.log(message);
+              const react = require('react');
+              const reactDom = require('react-dom');
+              console.log(react, reactDom);
             `,
           };
         }
 
-        const { data } = await axios.get(args.path);
+        const { data, request } = await axios.get(args.path);
         return {
-          loader: 'jsx',
+          loader: "jsx",
           contents: data,
+          resolveDir: new URL("./", request.responseURL).pathname,
         };
       });
     },

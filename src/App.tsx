@@ -6,7 +6,7 @@ import { unpkgPathPlugin } from "./plugins/unpkg-path-plugin";
 let renderd = false;
 function App() {
   const inputRef = useRef<any>("");
-  const [code, setCode] = useState<string>("");
+  const [code, setCode] = useState<string | undefined>("");
 
   const startService = async () => {
     try {
@@ -24,11 +24,17 @@ function App() {
       return;
     }
 
-    esbuild.build({
+    const res = await esbuild.build({
       entryPoints: ["index.js"],
       bundle: true,
       plugins: [unpkgPathPlugin()],
+      define: {
+        "process.env.NODE_ENV": '"production"',
+        global: "window",
+      },
     });
+
+    setCode(res.outputFiles && res.outputFiles[0].text);
   };
 
   useEffect(() => {
