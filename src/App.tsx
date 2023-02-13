@@ -27,7 +27,7 @@ function App() {
     const res = await esbuild.build({
       entryPoints: ["index.js"],
       bundle: true,
-      plugins: [unpkgPathPlugin()],
+      plugins: [unpkgPathPlugin({ inputCode: inputRef.current.value })],
       define: {
         "process.env.NODE_ENV": '"production"',
         global: "window",

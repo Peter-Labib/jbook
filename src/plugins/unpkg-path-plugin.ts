@@ -2,11 +2,15 @@ import * as esbuild from "esbuild-wasm";
 import axios from "axios";
 import localForage from "localforage";
 
+interface funcProp {
+  inputCode: string
+}
+
 const fileCache = localForage.createInstance({
   name: "file-cahe",
 });
 
-export const unpkgPathPlugin = () => {
+export const unpkgPathPlugin = ({inputCode}: funcProp) => {
   return {
     name: "unpkg-path-plugin",
     setup(build: esbuild.PluginBuild) {
@@ -30,13 +34,6 @@ export const unpkgPathPlugin = () => {
           namespace: "a",
           path: `https://unpkg.com/${args.path}`,
         };
-
-        // else if (args.path === 'tiny-test-pkg') {
-        //   return {
-        //     path: 'https://unpkg.com/tiny-test-pkg@1.0.0/index.js',
-        //     namespace: 'a',
-        //   };
-        // }
       });
 
       build.onLoad({ filter: /.*/ }, async (args: esbuild.OnLoadArgs) => {
@@ -45,11 +42,7 @@ export const unpkgPathPlugin = () => {
         if (args.path === "index.js") {
           return {
             loader: "jsx",
-            contents: `
-              const react = require('react');
-              const reactDom = require('react-dom');
-              console.log(react, reactDom);
-            `,
+            contents: inputCode,
           };
         }
 
