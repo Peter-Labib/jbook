@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import * as esbuild from "esbuild-wasm";
 
 import { unpkgPathPlugin } from "./plugins/unpkg-path-plugin";
+import { fetchPlugin } from "./plugins/fetch-plugin";
 
 let renderd = false;
 function App() {
@@ -27,7 +28,10 @@ function App() {
     const res = await esbuild.build({
       entryPoints: ["index.js"],
       bundle: true,
-      plugins: [unpkgPathPlugin({ inputCode: inputRef.current.value })],
+      plugins: [
+        unpkgPathPlugin(),
+        fetchPlugin({ inputCode: inputRef.current.value }),
+      ],
       define: {
         "process.env.NODE_ENV": '"production"',
         global: "window",
