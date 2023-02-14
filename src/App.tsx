@@ -13,7 +13,7 @@ function App() {
     try {
       await esbuild.initialize({
         worker: true,
-        wasmURL: "/esbuild.wasm",
+        wasmURL: "https://unpkg.com/esbuild-wasm@0.8.27/esbuild.wasm",
       });
     } catch (error) {
       console.log(error);
