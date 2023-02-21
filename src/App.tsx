@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import * as esbuild from "esbuild-wasm";
 
 import { unpkgPathPlugin } from "./plugins/unpkg-path-plugin";
@@ -7,13 +7,13 @@ import { fetchPlugin } from "./plugins/fetch-plugin";
 let renderd = false;
 function App() {
   const inputRef = useRef<any>("");
-  const [code, setCode] = useState<string | undefined>("");
+  const iframeRef = useRef<any>("");
 
   const startService = async () => {
     try {
       await esbuild.initialize({
         worker: true,
-        wasmURL: "https://unpkg.com/esbuild-wasm@0.8.27/esbuild.wasm",
+        wasmURL: "esbuild.wasm",
       });
     } catch (error) {
       console.log(error);
@@ -38,7 +38,11 @@ function App() {
       },
     });
 
-    setCode(res.outputFiles && res.outputFiles[0].text);
+    // setCode(res.outputFiles && res.outputFiles[0].text);
+    iframeRef.current.contentWindow.postMessage(
+      res.outputFiles && res.outputFiles[0].text,
+      "*"
+    );
   };
 
   useEffect(() => {
@@ -48,13 +52,30 @@ function App() {
     };
   }, []);
 
+  const html = `<html>
+                  <head></head>
+                  <body>
+                    <div id="root"></div>
+                    <script>
+                      window.addEventListener('message', event => {
+                        eval(event.data)
+                      }, false)
+                    </script>
+                  </body>
+                </html>`;
+
   return (
     <div className="App">
       <textarea ref={inputRef}></textarea>
       <div>
         <button onClick={onClick}>Sudbmit</button>
       </div>
-      <pre>{code}</pre>
+      <iframe
+        title="user-code"
+        ref={iframeRef}
+        sandbox="allow-scripts"
+        srcDoc={html}
+      />
     </div>
   );
 }
