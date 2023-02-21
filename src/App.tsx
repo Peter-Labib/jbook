@@ -9,6 +9,25 @@ function App() {
   const inputRef = useRef<any>("");
   const iframeRef = useRef<any>("");
 
+  const html = `
+  <html>
+  <head></head>
+  <body>
+    <div id="root"></div>
+    <script>
+      window.addEventListener('message', event => {
+        try {
+          eval(event.data);
+        } catch (err) {
+          const root = document.querySelector('#root');
+          root.innerHTML = '<div style="color: red;"> <h4>Runtime Error</h4>' + err + "</div>"
+          console.log(err);
+        }
+      }, false)
+    </script>
+  </body>
+</html>`;
+
   const startService = async () => {
     try {
       await esbuild.initialize({
@@ -25,6 +44,7 @@ function App() {
       return;
     }
 
+    iframeRef.current.srcDoc = html;
     const res = await esbuild.build({
       entryPoints: ["index.js"],
       bundle: true,
@@ -51,24 +71,6 @@ function App() {
       renderd = true;
     };
   }, []);
-
-  const html = `<html>
-                  <head></head>
-                  <body>
-                    <div id="root"></div>
-                    <script>
-                      window.addEventListener('message', event => {
-                        try {
-                          eval(event.data);
-                        } catch (err) {
-                          const root = document.querySelector('#root');
-                          root.innerHTML = '<div style="color: red;"> <h4>Runtime Error</h4>' + err + "</div>"
-                          console.log(err);
-                        }
-                      }, false)
-                    </script>
-                  </body>
-                </html>`;
 
   return (
     <div className="App">
