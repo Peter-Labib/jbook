@@ -3,6 +3,7 @@ import * as esbuild from "esbuild-wasm";
 
 import { unpkgPathPlugin } from "./plugins/unpkg-path-plugin";
 import { fetchPlugin } from "./plugins/fetch-plugin";
+import MonacoEditor from './components/CodeEditor'
 
 let renderd = false;
 function App() {
@@ -74,6 +75,7 @@ function App() {
 
   return (
     <div className="App">
+      <MonacoEditor />
       <textarea ref={inputRef}></textarea>
       <div>
         <button onClick={onClick}>Sudbmit</button>
